@@ -1,0 +1,620 @@
+Programme:
+----------
+    Set of "sequential instructions" to perform tasks.
+
+Process:
+--------
+    Provides the environment to execute the "tasks/Programmes".
+
+    Manages:
+        i.   CPU time
+        ii.  Memory
+        iii. Operation handling
+
+    A process at-least will have a thread.
+
+    Contains:
+        id: Unique identification.
+        state: Manages the state of programmes running.
+        memory: Memory management.
+        operation handling: IO,Networking and etc.
+
+    Actual execution happens on the "Thread".
+
+When ever android app launches a linux process will be created by default it comes with a thread,
+Known as UI/Main thread.
+
+UI/Main thread:
+---------------
+    Sole responsibility of the "Main/Ui" thread are
+        i.  UI rendering
+       ii.  UI event handling
+      iii.  Small/Light-weight operation handling
+
+    Since UI in android will render 16 frames/seconds to provide the better  user-experience.
+    If this get violated. ANR(Application not responding) Exception will be thrown.
+
+Core:
+-----
+    a "core" can have 2 threads
+
+    a Thread can execute
+        1 Parallel task
+        2 Concurrent tasks
+
+Scheduler:
+----------
+    Process has a Scheduler which is sole responsible for the thread to schedule on the core
+    for task execution.
+
+Thread:
+-------
+    Heavy handled data structure(DS),
+    managed by OS(Operating system).
+    Shares the Memory and resources of the process so known as "light-weight Process"
+
+    Gives the separate execution path to execute the tasks.
+    A Thread can execute 1 Parallel task or 2 Concurrent tasks
+
+    Limitation:
+        i. Blocking call
+       ii. Inter-Thread Communication is difficult
+      iii. Costly resource (Shares the memory and resources of the process)
+       iv. Limited number of threads can only be creates
+        v. A single thread takes-up 1MB of space.
+       vi. Default thread is Non-Demon thread.
+
+    Demon-Thread:
+    -------------
+        A thread which doesn't prevent the process from terminated/Exit when it needed, even-though
+        it's task is not yet completed.
+
+        ex: Coroutines will launched on a demon-threads pool.
+
+If more numbers of threads are created then the core then Scheduler needs to spend it's time(CPU-Time)
+on Thread scheduling on the core rather than the executing the tasks.
+
+Thread-pool manages the above costly process internally.
+Thread-pool nothing but group of threads.
+
+Coroutine:
+----------
+    Kotlin feature to perform the heavy computation, as same as Thread.
+    Most effectively, implements the structured concurrency.
+    Returns single object: list of data/Single data.
+
+    Advantages over Threads:
+        i. Suspending call.
+       ii. A millions of coroutines can be launched on a single thread (Light-weight).
+      iii. Context switching is easy.
+       vi. Can control the execution order.
+        v. Easily implement the parenting.
+
+Main components of Coroutine:
+-----------------------------
+    Coroutine Builder  : Builds the coroutine.
+    Coroutine Scope    : Controls the life-span of the coroutine.
+    Coroutine Context  : Info of the coroutine on which thread/Context been launched.
+
+Coroutine Builder:
+------------------
+    "CoroutineBuilder", Creates a coroutine and attaches it to a "CoroutineScope" which comes with
+    "CoroutineContext" on a thread pool(Demon-Threads pool).
+
+          runBlocking: Blocking coroutine
+          withContext: Blocking coroutine
+               launch: Stand-alone coroutine
+                async: Deferrable coroutine
+          withTimeout: Time-bounded coroutine
+    withTimeoutOrNull: Time-bounded coroutine
+
+    Custom Coroutine Builder can be made via Executors.
+    All are Cancellable by default
+
+    runBlocking:
+       Blocking coroutine(Blocks the threads on which it's running), mainly used for thr test-cases,
+       can be used for to a bridge between the suspending call and non-suspending call.
+
+    withContext:
+        Blocking coroutine
+        Returns the result
+        Usage: context switching
+
+    launch:
+        Stand-alone coroutine (Suspending call)
+        Doesn't return any data (Fire and Forget)
+
+    async:
+        Deferrable coroutine (Suspending call)
+        Returns the result
+
+    withTimeout:
+        Time-bounded coroutine (Suspending call)
+        If the tasks doesn't execute within the specified tasks it'll throw TimeOutCancellation exception.
+
+    withTimeoutOrNull:
+     Time-bounded coroutine (Suspending call)
+     If the tasks doesn't execute within the specified tasks it'll return null rather then exception
+
+Confined Coroutine and UnConfined Coroutine.
+--------------------------------------------
+Confined Coroutine:
+    Confined to a Single thread despite of suspension/yielding point.
+    ex:
+        i. launch{
+                 .....
+            }
+
+       ii. async(coroutineContext){
+                .....
+           }
+
+
+Un-Confined Coroutine:
+    Might be a context switching at the suspension/yielding point.
+
+    ex:
+        i. launch(Dispatcher.Default){
+                .......
+           }
+
+
+Coroutine Scope:
+----------------
+    Controls the life-span of the coroutine.
+
+    (On life-span controlling)
+    GlobalScope
+    ViewModelScope
+    LifeCycleScope
+    CustomScope
+
+    GlobalScope:
+        Attaches the coroutine to the Application lifespan,
+        even-though component which creates a coroutine dies Coroutine won't.
+
+    ViewModelScope:
+        Attaches the coroutine to the ViewModel lifespan,
+
+    LifeCycleScope:
+        Attaches the coroutine to the current lifespan of that specific component.
+
+
+    CustomScope:
+        Need to clear-up manually,
+        val scope = CoroutineScope(Dispatchers.IO)
+
+
+    (On Cancellation controlling)
+    supervisorScope
+    coroutineScope
+
+    supervisorScope:
+        Coroutines under supervisorScope are all treated as root coroutine,
+        Doesn't effected by the subordinate coroutine cancellation due to exception
+
+        supervisorScope{} =>
+            Each and every Coroutine under the supervisorScope are treats as Root Coroutine
+            CoroutineExceptionHandler can be installed.
+
+    coroutineScope:
+        If the subordinate coroutine cancellation due to exception all of them will be cancelled too
+
+
+    Components:
+        Dispatchers
+        CoroutineExceptionHandler
+        Name
+
+    Dispatcher:
+        Dispatches the coroutine on the context
+            IO     : Optimized for the IO operation. thread pool of 64 threads.
+            MAIN   : Optimized for the UI operation
+            DEFAULT: Optimized for the CPU Intensive operation
+            CUSTOM:
+                val dispatcher:CoroutineDispatcher = Dispatchers.IO.limitedParallelism(parallelism = 2)
+                 val dispatcher:CoroutineDispatcher = Executors.newFixedThreadPool(2).asCoroutineDispatcher()
+
+
+            CoroutineName    : Debugging purpose
+            Job              : Control the job (Coroutine)
+            ExceptionHandler : Handle the uncaught exception.
+
+
+        val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->  }
+        CoroutineScope(Dispatchers.Default+CoroutineName("CSName")+coroutineExceptionHandler+ SupervisorJob())
+
+        CoroutineExceptionHandler: will caught the uncaught execution.
+
+
+  join() //waits the job to complete.
+  cancel() //co-operative functions >> it'll get enough time to notify the information of coroutine cancellation
+            // isActive === this.isActive >> check explicitly to terminate the coroutine effectively
+  await()
+
+
+/***** Exception handling in Coroutine:
+ *
+ *        coroutineScope {
+ *            .....
+ *           // For General exception all subordinate coroutine will be terminated.
+ *        }
+ *        supervisorScope {
+ *            .....
+ *            // For General exception, subordinate coroutine will be touched.
+ *        }
+ *
+ *Exception handling in coroutine is not same as Regular exception handling.
+ * General exception in the coroutine, will propagate to root coroutine and cause all subordinate coroutine to get terminated.
+ * if it not handled locally(where it was thrown)
+ *
+ * Where as CancellationException, internally handled by coroutine and will not be propagated upwards.
+ *  if the CancellationException thrown and not handled where it was thrown, internally it was suppressed by coroutine and it keep on running along side with the subordinate coroutines
+ *  if CancellationException was handled manually where it was thrown and not propagated then also it keep on running as usual along side with subordinates.
+ *  if CancellationException was handled manually where it was thrown and propagated upwards then that specific coroutine will be terminated but subordinates will keep on running as usual.
+ *  if CancellationException was handled manually where it was thrown and propagated general exception then including the subordinates coroutines will be terminated if it is under regularCoroutineScope.
+ *
+ *
+ *
+ *  private suspend fun main() {
+
+ *     /*val job = GlobalScope.launch {
+ *         launch {
+ *             repeat(10){
+ *                 if(it==5) throw CancellationException("Hey got CancellationException on C1")
+ *                 println("C1: $it")
+ *                 delay(500) //if CancellationException is not caught manually, then coroutine will be cancelled.
+ *             }
+ *         }
+ *         launch {
+ *             repeat(10){
+ *                 try { //if CancellationException is caught manually, then coroutine will not be cancelled.
+ *                 if(it==7) throw CancellationException("Hey got CancellationException on C2")
+ *                 }catch (exception:Exception){
+ *                     exception.printStackTrace()
+ *                     println("exception <message> from C2: ${exception.message}")
+ *                 }
+ *                 println("C2: $it")
+ *                 delay(500)
+ *             }
+ *         }
+ *         launch {
+ *             repeat(10){
+ *                 try { //if CancellationException is caught manually, and propagated upwards then coroutine will be cancelled.
+ *                     if(it==7) throw CancellationException("Hey got CancellationException on C3")
+ *                 }catch (exception:Exception){
+ *                     exception.printStackTrace()
+ *                     println("exception <message> from C3: ${exception.message}")
+ *                     throw exception
+ *                 }
+ *                 println("C3: $it")
+ *                 delay(500)
+ *             }
+ *         }
+ *     }
+ *     job.join()
+ *     */
+ *
+ *
+ *     val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+ *         throwable.printStackTrace()
+ *         println("coroutineContext $coroutineContext\nthrowable: ${throwable.message}")
+ *     }
+ *
+ *     val job2 = GlobalScope.launch(coroutineExceptionHandler+CoroutineName("JOB2COR")) {
+ *         launch {
+ *             repeat(10){
+ *                 if(it==5) throw CancellationException("Hey got CancellationException on JOB2COR1")
+ *                 if(it==8) throw Exception("Custom JOB2COR1 Exception")
+ *                 println("JOB2COR1: $it")
+ *                 delay(500) //if CancellationException is not caught manually, then coroutine will be cancelled.
+ *             }
+ *         }
+ *         launch {
+ *             repeat(10){
+ *                 try { //if CancellationException is caught manually, then coroutine will not be cancelled.
+ *                     if(it==7) throw CancellationException("Hey got CancellationException on JOB2COR2")
+ *                     if(it==6) throw Exception("Custom JOB2COR2 Exception")
+ *                 }catch (exception:Exception){
+ *                     exception.printStackTrace()
+ *                     println("exception <message> from JOB2COR2: ${exception.message}")
+ *                 }
+ *                 println("JOB2COR2: $it")
+ *                 delay(500)
+ *             }
+ *         }
+ *         launch {
+ *             repeat(10){
+ *                 try { //if CancellationException is caught manually, and propagated upwards then coroutine will be cancelled.
+ *                     if(it==7) throw CancellationException("Hey got CancellationException on JOB2COR3")
+ *                 }catch (exception:Exception){
+ *                     exception.printStackTrace()
+ *                     println("exception <message> from JOB2COR3: ${exception.message}")
+ *                     throw exception
+ *                 }
+ *                 println("JOB2COR3: $it")
+ *                 delay(500)
+ *             }
+ *         }
+ *         launch {
+ *             repeat(10){
+ *                 try { //if CancellationException is caught manually, and propagated upwards then coroutine will be cancelled.
+ *                     if(it==7) throw CancellationException("Hey got CancellationException on JOB2COR4")
+ *                 }catch (exception:Exception){
+ *                     exception.printStackTrace()
+ *                     println("exception <message> from JOB2COR4: ${exception.message}")
+ *                     //throw Exception("Custom JOB2COR4 Exception")
+ *                 }
+ *                 println("JOB2COR3: $it")
+ *                 delay(500)
+ *             }
+ *         }
+ *     }
+ *
+ *     joinAll(job2)
+ *     println("Exit: Main")
+ *
+ *
+ *
+ * }
+ *
+ */
+
+CancellationException:
+----------------------
+   Exception handling is not same as the regular exception handling.
+   By default it'll be handled built-in Coroutine
+   Except CancellationException rest will propagate to the root scope
+
+   Cancellation will happens on the first yielding point/Suspension point.
+
+   Resources must be closed before cancelling the Coroutine.
+       1. can be done using the invokeOnCompletion lambda
+       2. Implementing the AutoCloseable interface and doing the clean-up action in the close method.
+
+   CancellationException: will be handed internally and it any coroutine got the cancellationException only that specific coroutine gets canceled remaining will be untouched
+           General exception handling will eaten-up the CancellationException, so won't get cancelled properly.
+
+   Only cancels the specific coroutine
+       launch{
+           launch{
+               //CancellationException || propagated upward => throw e [e = CancellationException]
+           }
+           launch{
+
+           }
+       }
+
+
+    cancels the sibling coroutine too
+       launch{
+           launch{
+               //CancellationException || propagated upward => throw Exception(message) [e = CancellationException]
+           }
+           launch{
+
+           }
+       }
+
+
+   launch{
+       cancellationException  >> won't propagate upwards
+   }
+
+   runBlocking{
+       cancellationException  >> will propagate upwards
+   }
+
+        SupervisorScope: each coroutine inside the scopes are treated as the root coroutine.
+               if any exception occurred in the coroutine that specif coroutines will be canceled and sibling coroutines are unaffected by this.
+
+        Regular scope:
+             if any exception occurred in the coroutine irrespective it is handled or not all sibling coroutines will be canceled
+
+        Cancelling the parent coroutine/Root coroutine will cancels the all child coroutines.
+
+  //returns the time which taken to execute the block
+    measureTimeMillis {  }
+
+   launch >> as soon as it executed causes app to crash if it caught the uncaught exception
+   async  >> accumulate the exception until that deferrable object been tried to consume
+           if it surrounded by launch the launch coroutine will be imposed. means as soon as it executed causes app to crash.
+   launch{
+       async{}   => root one is launch, launch exception behaviour
+   }
+
+   async{
+       launch{}   => root one is async, async exception behaviour
+   }
+
+
+  Structured Concurrency:
+   Implements the parenting(Parent child relationship) and helps to manage the lifespan and control over the coroutines been launched within the parent coroutine.
+   avoids:
+       Memory leaks
+       Control over coroutines
+       Ease to manage them
+
+
+/***** Structuring the coroutine.
+ * Controlling the coroutine execution
+ *  i. runBlocking  <Blocking call>
+ *  ii. coroutineScope <Suspending call>
+ *
+ *  Both waits for their children to completes their tasks before exiting the block
+ *  where as
+ *  i. runBlocking is a Blocking call and ii. coroutineScope is a suspending call
+ *
+ * private suspend fun main() = runBlocking {
+ *
+ *     println("hello main")
+ *
+ *     //Structuring the task execution...
+ *     val countDownUsingRunBlockingTime = measureTimeMillis {
+ *         //countDownUsingRunBlocking()
+ *         countDownUsingCoroutineScope()
+ *     }
+ *     println("countDownUsingRunBlocking time = $countDownUsingRunBlockingTime")
+ *
+ *     println("exit main")
+ *
+ * }
+ */
+
+
+/****Cleanup can be done using the AutoCancellable interface or invoking invokeOnCompletion on the coroutineBuilder
+ *
+ * private suspend fun main() = runBlocking {
+ *     println("hello main")
+ *
+ *     coroutineScope {
+ *         val laptop = Laptop()
+ *         launch {
+ *             laptop.use {
+ *                 it.useLaptop()
+ *                 println("delay of 100L")
+ *                 delay(100L)
+ *             }
+ *             println("Done...with lap....")
+ *         }.invokeOnCompletion {
+ *             println("invokeOnCompletion")
+ *         }
+ *
+ *
+ *         launch {
+ *             println("C2")
+ *             laptop.useLaptop()
+ *         }.invokeOnCompletion {
+ *             println("C2 <invokeOnCompletion>")
+ *             laptop.close()
+ *         }
+ *
+ *     }
+ *
+ * }
+ *
+ *private class Laptop : AutoCloseable {
+ *
+ *     ...................
+ *     override fun close() {
+ *         println("shutdown laptop")
+ *         println("close the laptop")
+ *     }
+ *
+ * }
+ */
+
+
+suspendingCoroutine()
+
+suspend fun suspendingCoroutine():Boolean{
+    return suspendCancellableCoroutine { continuation ->
+        api.onSuccess{
+            continuation.resumeWith(true)
+        }.onFailure{
+            continuation.resumeWithException(Exception(it))
+        }
+
+        continuation.invokeOnCancellation {
+
+        }
+    }
+
+
+
+====================================================================================================
+Coroutine:
+
+====================================================================================================
+Channel:
+
+    send
+    cancel
+    receive/consumeEach{...}
+
+    ReceiveChannel<Type> = Channel()
+        produce{
+            send()
+        }//Auto cancel on the producer site.
+
+====================================================================================================
+Flow:  <flowMarble.com>
+
+    suspend sequential asynchronous data stream handling.
+
+    flow, flowOf(..), asFlow()
+
+    by default emission and collection happens on same coroutine so backpressure/bottle-neck on one site influences other site.
+    buffer =>  backpressure/bottle-neck can be avoided.
+        i. decouple them and uses the channel for internal-communication.
+
+    buffer and conflated
+
+    Conflated:
+        conflated is similar to that of collectLatest
+        only honours the latest emission.
+
+    Buffer:
+        Provides internal storage for the overflow value
+
+    flatConcat:
+        flattens the flow and collect them sequentially
+
+    flatMapContact:
+        short-end of flatConcat + map, and honours each emission sequentially
+
+    flatMapLatest:
+        flattens the flow and honours only latest emission
+
+    terminal operators:
+        collect, launchIn, first+predicate -> first{it%2==0}, last, drop/takeWhile(condition)
+        fold,reduce,count, single and etc
+
+    non-terminal operators:
+        onStart,onComplete,onEach,flowOn(up-stream)
+
+    combine(..){...} => any one of the flow should emit
+    zip(..){...} => all them should emit
+    merge(..){...} => flattens the flows and emit sequentially
+    flatMapLatest(flow){
+        when(it){
+            return flow => ...
+        }
+    }
+
+====================================================================================================
+--------------------------------------------Credits:------------------------------------------------
+====================================================================================================
+Youtube channels:
+    Rock the JVM:  https://www.youtube.com/@rockthejvm/playlists
+        1. Coroutines
+
+Coroutines:
+    The Basics - Kotlin Coroutines
+        https://www.youtube.com/watch?v=2QInrEaXyMo&list=PLSrm9z4zp4mE-o3sPq-PqzGHoFAIsQFI6 [Stevdza-San]
+
+    Kotlin Coroutines Tutorial,
+        Part 1
+            https://youtu.be/Wpco6IK1hmY?si=H7qXka2IKDEe_Xon [Rock the JVM]
+        Part 2
+            https://www.youtube.com/watch?v=2RdHD0tceL4 [Rock the JVM]
+        ....
+        https://www.youtube.com/watch?v=kIzjzjJGk0Y [Rock the JVM]
+
+    Coroutines:
+        Concurrency in Kotlin
+            https://youtu.be/e7tKQDJsTGs?si=fi7c0uV5AJ-DUWX2 [Dave leeds]
+        The Essence of Coroutines
+            https://www.youtube.com/watch?v=kIzjzjJGk0Y
+
+    Kotlin Coroutines Fundamentals
+        https://www.youtube.com/watch?v=rbZH-tZje1U&list=PL-1MzrWZIYU2a4TGbSXeXzfet8Br3cya1 [Lukas Lechner]
+
+Cancellation & Exception Handling
+   https://www.youtube.com/watch?v=VWlwkqmTLHc&t=599s (Phillipp Lackner)
+
+Best practice:
+    https://www.youtube.com/watch?v=CuWJBcOuNHI (Phillipp Lackner)
+    https://youtu.be/cr5xLjPC4-0?si=dC6h-erST8IK95aw (Phillipp Lackner)
+
+====================================================================================================
