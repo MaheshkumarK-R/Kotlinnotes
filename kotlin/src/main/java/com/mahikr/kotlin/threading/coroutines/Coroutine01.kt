@@ -1,4 +1,4 @@
-package com.mahikr.kotlinnotes.threading
+package com.mahikr.kotlin.threading.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -15,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.CancellationException
-import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.logging.Logger
 import kotlin.concurrent.thread
@@ -414,7 +413,7 @@ suspend fun asyncGreeting(){
         val coroutineExceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
             logger.log("CoroutineExceptionHandler ${throwable.message}")
         }
-        launch (CoroutineName("GreetCoroutine")+/*Dispatchers.Default*/AppDispatcher.default+coroutineExceptionHandler){
+        launch (CoroutineName("GreetCoroutine")+/*Dispatchers.Default*/AppDispatcher.default +coroutineExceptionHandler){
             logger.log("[Parent] Hello everyone $this")
             launch {//inherited from immediate parent if not mentioned
                 logger.log("[Child]  Hello everyone $this")

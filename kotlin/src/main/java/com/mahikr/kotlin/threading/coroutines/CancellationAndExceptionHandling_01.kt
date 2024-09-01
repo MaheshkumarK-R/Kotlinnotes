@@ -1,21 +1,17 @@
-package com.mahikr.kotlinnotes.threading
+package com.mahikr.kotlin.threading.coroutines
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import java.util.logging.Logger
-import kotlin.coroutines.CoroutineContext
 
 /***** Coroutine Exception Handling
  *  If Exception not handled directly using try & catch block, it'll propagate up towards root scope.

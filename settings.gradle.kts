@@ -15,4 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Kotlin Notes"
 include(":app")
- 
+include(":kotlin")
