@@ -1,4 +1,4 @@
-package com.mahikr.kotlinnotes.threading
+package com.mahikr.kotlinnotes.threading.coroutines
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
