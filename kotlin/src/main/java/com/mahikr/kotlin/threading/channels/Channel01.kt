@@ -2,6 +2,8 @@
 
 package com.mahikr.kotlinnotes.threading.channels
 
+import android.util.Log
+import androidx.lifecycle.lifecycleScope
 import com.mahikr.kotlinnotes.threading.coroutines.AppDispatcher
 import com.mahikr.kotlinnotes.threading.coroutines.logger
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -173,11 +175,50 @@ private suspend fun main() {
                 log("channel closed")
             }
         }
-
     }?.join()
     log("Exit main")
 }
 
 enum class LANGUAGES {
     KOTLIN, JAVA, PYTHON, JAVA_SCRIPT
+}
+
+
+class IntReceiveChannel(){
+    private var intReceiveChannel:ReceiveChannel<Int> = Channel()
+    suspend fun produceInt(){
+        withContext(Dispatchers.Default){
+            intReceiveChannel = produce(capacity = 4) {
+                Log.d("TAGi", "send(1)")
+                trySend(1)
+                delay(1000L)
+                Log.d("TAGi", "send(2)")
+                send(2)
+                Log.d("TAGi", "send(3)")
+                trySend(3)
+                Log.d("TAGi", "send(4)")
+                send(4)
+                Log.d("TAGi", "send(5)")
+                send(5)
+                Log.d("TAGi", "send(6)")
+                send(6)
+                Log.d("TAGi", "send(7)")
+                send(7)
+            }
+        }
+    }
+
+    suspend fun consumeInt(){
+        withContext(Dispatchers.Default){
+            /*channel.consumeEach {
+                       Log.d("TAGi", "consumeEach: $it")
+            }*/
+            intReceiveChannel.consumeAsFlow().onEach { delay(100L)
+                Log.d("TAGi", "consumeAsFlow:$it ") }.launchIn(this)
+        }
+    }
+
+
+
+
 }
