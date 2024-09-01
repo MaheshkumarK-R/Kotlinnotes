@@ -1,25 +1,19 @@
 @file:OptIn(ExperimentalCoroutinesApi::class)
 
-package com.mahikr.kotlinnotes.threading.channels
+package com.mahikr.kotlin.threading.channels
 
 import android.util.Log
-import androidx.lifecycle.lifecycleScope
-import com.mahikr.kotlinnotes.threading.coroutines.AppDispatcher
-import com.mahikr.kotlinnotes.threading.coroutines.logger
+import com.mahikr.kotlin.threading.coroutines.AppDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.channels.onClosed
-import kotlinx.coroutines.channels.onFailure
-import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay

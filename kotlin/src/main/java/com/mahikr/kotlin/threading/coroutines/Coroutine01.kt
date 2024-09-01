@@ -1,4 +1,4 @@
-package com.mahikr.kotlinnotes.threading.coroutines
+package com.mahikr.kotlin.threading.coroutines
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineExceptionHandler
