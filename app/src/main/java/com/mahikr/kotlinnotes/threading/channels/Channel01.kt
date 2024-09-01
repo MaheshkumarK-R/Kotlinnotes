@@ -15,6 +15,9 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.onClosed
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -85,7 +88,7 @@ import kotlinx.coroutines.withContext
  * //how many element it can store internally until the value been received
  * //BUFFERED: allow max capacity. until the value been consumed and buffer capacity been freed. it can't send a new value.
  * //capacity: indicates that the max capacity of the channel to send the element until it consumed and space for the sender buffer is freed up it can't send new element
- * 
+ *
  */
 
 fun log(mes: Any?) {
@@ -171,22 +174,6 @@ private suspend fun main() {
             }
         }
 
-        var channel1:ReceiveChannel<LANGUAGES> = Channel()
-        launch {
-            channel1 = produce {
-                log("trySend(LANGUAGES.JAVA)")
-                trySend(LANGUAGES.JAVA)
-                log("trySend(LANGUAGES.JAVA_SCRIPT)")
-                trySend(LANGUAGES.JAVA_SCRIPT)
-            }
-        }
-
-        launch {
-            /*channel1.consumeEach {
-                log("it")
-            }*/
-            channel1.consumeAsFlow().onEach {  log("consumeAsFlow $it") }.launchIn(this)
-        }
     }?.join()
     log("Exit main")
 }
